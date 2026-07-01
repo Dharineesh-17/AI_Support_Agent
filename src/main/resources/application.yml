@@ -7,7 +7,7 @@ spring:
 
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY: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}
+      api-key: ${MY_SECRET_API_KEY}
       chat:
         options:
           model: gpt-4o
@@ -20,8 +20,8 @@ spring:
   # ──────────────────────────────────────────────────────────────
   datasource:
     url: jdbc:h2:mem:customer_agent_db;DB_CLOSE_DELAY=-1;MODE=MySQL
-    username: sa
-    password: 
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.h2.Driver
   h2:
     console:
