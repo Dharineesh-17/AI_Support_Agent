@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI — Customer Support Intelligence</title>
+  <meta name="description" content="AI-Powered Autonomous Customer Support Agent built with Spring AI, GPT-4o, and MySQL 9.0 native VECTOR embeddings." />
+  <meta name="theme-color" content="#0a0a0f" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50:  '#f0f4ff',
+              100: '#dce8ff',
+              200: '#b9d3ff',
+              300: '#85b3ff',
+              400: '#4d8aff',
+              500: '#1a5eff',
+              600: '#003ee0',
+              700: '#002cb5',
+              800: '#001e85',
+              900: '#00145c',
+            },
+            surface: {
+              50:  '#f8f8ff',
+              100: '#f0f0fa',
+              200: '#e4e4f0',
+              300: '#c8c8dc',
+              400: '#9a9ab4',
+              500: '#6e6e8a',
+              600: '#4e4e6a',
+              700: '#363650',
+              800: '#22223a',
+              900: '#13132a',
+              950: '#0a0a1a',
+            },
+          },
+          animation: {
+            'fade-in':    'fadeIn 0.6s ease forwards',
+            'slide-up':   'slideUp 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards',
+            'slide-down': 'slideDown 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards',
+            'pulse-ring': 'pulseRing 2s ease-in-out infinite',
+            'shimmer':    'shimmer 1.5s infinite',
+            'float':      'float 6s ease-in-out infinite',
+            'glow':       'glow 3s ease-in-out infinite alternate',
+          },
+          keyframes: {
+            fadeIn:    { '0%': { opacity: '0' },                     '100%': { opacity: '1' } },
+            slideUp:   { '0%': { transform: 'translateY(30px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+            slideDown: { '0%': { transform: 'translateY(-20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+            pulseRing: { '0%,100%': { boxShadow: '0 0 0 0 rgba(26,94,255,0.4)' }, '50%': { boxShadow: '0 0 0 12px rgba(26,94,255,0)' } },
+            shimmer:   { '0%': { backgroundPosition: '-200% 0' }, '100%': { backgroundPosition: '200% 0' } },
+            float:     { '0%,100%': { transform: 'translateY(0px)' }, '50%': { transform: 'translateY(-10px)' } },
+            glow:      { '0%': { filter: 'drop-shadow(0 0 8px rgba(26,94,255,0.3))' }, '100%': { filter: 'drop-shadow(0 0 20px rgba(26,94,255,0.7))' } },
+          },
+          backdropBlur: { xs: '2px' },
+          boxShadow: {
+            'glass':      '0 8px 32px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.1)',
+            'card':       '0 4px 24px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
+            'card-hover': '0 12px 40px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)',
+            'blue-glow':  '0 0 30px rgba(26,94,255,0.25)',
+            'inset-border': 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ─── Base Reset & Variables ─────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #0a0a1a;
+      color: #e8e8f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Animated Background Mesh ───────────────────────────────────────── */
+    .bg-mesh {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(26, 94, 255, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(100, 40, 255, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0, 180, 255, 0.05) 0%, transparent 70%),
+        #0a0a1a;
+      pointer-events: none;
+    }
+
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image:
+        linear-gradient(rgba(26,94,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26,94,255,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
+
+    /* ─── Glass Card ─────────────────────────────────────────────────────── */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+      border-color: rgba(26,94,255,0.2);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.4), 0 0 40px rgba(26,94,255,0.08), inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    /* ─── Search Bar ─────────────────────────────────────────────────────── */
+    .search-container {
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .search-container.slide-top {
+      transform: translateY(-40px);
+    }
+
+    .search-bar {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 100px;
+      padding: 20px 28px 20px 64px;
+      font-size: 1.125rem;
+      color: #f0f0fa;
+      width: 100%;
+      transition: all 0.3s ease;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      backdrop-filter: blur(10px);
+    }
+    .search-bar:focus {
+      border-color: rgba(26,94,255,0.6);
+      background: rgba(26,94,255,0.06);
+      box-shadow: 0 0 0 4px rgba(26,94,255,0.12), 0 0 30px rgba(26,94,255,0.15);
+    }
+    .search-bar::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* ─── Submit Button ──────────────────────────────────────────────────── */
+    .btn-primary {
+      background: linear-gradient(135deg, #1a5eff 0%, #6428ff 100%);
+      border: none;
+      border-radius: 100px;
+      padding: 16px 36px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.02em;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      border-radius: inherit;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(26,94,255,0.5);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ─── Stage Progress Items ───────────────────────────────────────────── */
+    .stage-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      transition: all 0.3s ease;
+      opacity: 0.4;
+      transform: translateX(-10px);
+    }
+    .stage-item.active {
+      opacity: 1;
+      transform: translateX(0);
+      background: rgba(26,94,255,0.08);
+      border: 1px solid rgba(26,94,255,0.15);
+    }
+    .stage-item.complete {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .stage-item.fallback-state {
+      opacity: 1;
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+
+    .stage-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+    .stage-dot.pending  { background: rgba(255,255,255,0.2); }
+    .stage-dot.active   { background: #1a5eff; animation: pulseRing 1.5s ease-in-out infinite; box-shadow: 0 0 0 0 rgba(26,94,255,0.4); }
+    .stage-dot.complete { background: #10b981; }
+    .stage-dot.fallback { background: #f59e0b; }
+    .stage-dot.error    { background: #ef4444; }
+
+    @keyframes pulseRing {
+      0%   { box-shadow: 0 0 0 0 rgba(26,94,255,0.5); }
+      70%  { box-shadow: 0 0 0 8px rgba(26,94,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(26,94,255,0); }
+    }
+
+    /* ─── Status Badges ──────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      transition: all 0.4s ease;
+    }
+    .badge-refund       { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .badge-tech         { background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3); color: #93c5fd; }
+    .badge-general      { background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3); color: #c4b5fd; }
+    .badge-high         { background: rgba(239,68,68,0.2);   border: 1px solid rgba(239,68,68,0.4);  color: #f87171; }
+    .badge-medium       { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+    .badge-low          { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .badge-resolved     { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+    .badge-processing   { background: rgba(26,94,255,0.15);  border: 1px solid rgba(26,94,255,0.3);  color: #93c5fd; }
+    .badge-fallback     { background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+    .badge-error        { background: rgba(239,68,68,0.15);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .badge-pending      { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.4); }
+
+    /* ─── Typewriter Text ────────────────────────────────────────────────── */
+    .typewriter-text {
+      font-size: 0.9375rem;
+      line-height: 1.75;
+      color: #c8c8e8;
+      font-family: 'Inter', sans-serif;
+      min-height: 4rem;
+    }
+
+    .typewriter-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: #1a5eff;
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 0.8s step-end infinite;
+      border-radius: 1px;
+    }
+    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* ─── Results Panel ──────────────────────────────────────────────────── */
+    #results-panel {
+      display: none;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #results-panel.visible {
+      display: grid;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── Logo Shimmer ───────────────────────────────────────────────────── */
+    .logo-text {
+      background: linear-gradient(135deg, #ffffff 0%, rgba(26,94,255,0.9) 50%, #6428ff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: logoShimmer 4s ease-in-out infinite;
+    }
+    @keyframes logoShimmer {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* ─── Metric Card ────────────────────────────────────────────────────── */
+    .metric-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+    .metric-card:hover {
+      background: rgba(26,94,255,0.05);
+      border-color: rgba(26,94,255,0.15);
+    }
+
+    /* ─── Error State ────────────────────────────────────────────────────── */
+    .error-banner {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      animation: fadeIn 0.3s ease forwards;
+    }
+    .error-banner.visible { display: flex; }
+
+    /* ─── Register Modal ────────────────────────────────────────────────── */
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-backdrop.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: #13132a;
+      border: 1px solid rgba(26,94,255,0.25);
+      border-radius: 24px;
+      padding: 36px;
+      width: 100%; max-width: 440px;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 60px rgba(26,94,255,0.1);
+    }
+    .modal-backdrop.open .modal-box { transform: translateY(0) scale(1); }
+    .modal-input {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 14px 18px;
+      color: #f0f0fa;
+      font-size: 0.9375rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: all 0.2s ease;
+      margin-top: 6px;
+    }
+    .modal-input:focus {
+      border-color: rgba(26,94,255,0.6);
+      background: rgba(26,94,255,0.06);
+      box-shadow: 0 0 0 3px rgba(26,94,255,0.12);
+    }
+    .modal-input::placeholder { color: rgba(255,255,255,0.25); }
+
+    /* ─── Customer Dropdown ─────────────────────────────────────────────── */
+    .customer-select {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 10px 16px;
+      color: #f0f0fa;
+      font-size: 0.875rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 220px;
+    }
+    .customer-select:focus {
+      border-color: rgba(26,94,255,0.6);
+      box-shadow: 0 0 0 3px rgba(26,94,255,0.12);
+    }
+    .customer-select option { background: #13132a; color: #f0f0fa; }
+
+    /* ─── Avatar pill ───────────────────────────────────────────────────── */
+    .avatar-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 6px 14px 6px 8px;
+      border-radius: 100px;
+      background: rgba(26,94,255,0.1);
+      border: 1px solid rgba(26,94,255,0.2);
+      font-size: 0.8125rem; font-weight: 500;
+      color: #93c5fd;
+      transition: all 0.3s ease;
+    }
+    .avatar-circle {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: linear-gradient(135deg, #1a5eff, #6428ff);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6875rem; font-weight: 700; color: white;
+      flex-shrink: 0;
+    }
+    .btn-register {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 18px; border-radius: 14px;
+      background: rgba(26,94,255,0.12);
+      border: 1px solid rgba(26,94,255,0.25);
+      color: #93c5fd; font-size: 0.8125rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-register:hover {
+      background: rgba(26,94,255,0.22);
+      border-color: rgba(26,94,255,0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ─── Scrollbar ──────────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(26,94,255,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(26,94,255,0.5); }
+
+    /* ─── Loading Spinner ────────────────────────────────────────────────── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(26,94,255,0.3);
+      border-top-color: #1a5eff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .spinner.visible { display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Particle Orbs ──────────────────────────────────────────────────── */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.12;
+      pointer-events: none;
+      animation: float 8s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0) scale(1); }
+      50%      { transform: translateY(-20px) scale(1.05); }
+    }
+  </style>
+</head>
+
+<body class="relative">
+
+  <!-- ── Background layers ───────────────────────────────────────────────── -->
+  <div class="bg-mesh" aria-hidden="true"></div>
+  <div class="bg-grid"  aria-hidden="true"></div>
+
+  <!-- Decorative orbs -->
+  <div class="orb w-96 h-96 bg-blue-600"   style="top:-80px;left:-60px;animation-delay:0s;"    aria-hidden="true"></div>
+  <div class="orb w-80 h-80 bg-purple-600" style="bottom:-60px;right:-40px;animation-delay:3s;" aria-hidden="true"></div>
+  <div class="orb w-64 h-64 bg-cyan-500"   style="top:40%;left:60%;animation-delay:5s;"         aria-hidden="true"></div>
+
+  <!-- ── Main Layout ─────────────────────────────────────────────────────── -->
+  <div class="relative z-10 min-h-screen flex flex-col">
+
+    <!-- ── Header ──────────────────────────────────────────────────────── -->
+    <header class="px-8 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <!-- SVG Logo Mark -->
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1a5eff,#6428ff);">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <span class="text-xl font-bold logo-text tracking-tight">Nexus AI</span>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-6" aria-label="Primary navigation">
+        <a href="#" class="text-sm text-white/40 hover:text-white/80 transition-colors">Docs</a>
+        <a href="#" class="text-sm text-white/40 hover:text-white/80 transition-colors">API</a>
+        <a href="/actuator/health" target="_blank" rel="noopener" class="text-sm text-white/40 hover:text-white/80 transition-colors">Health</a>
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-xs font-medium text-emerald-400">Live</span>
+        </div>
+      </nav>
+    </header>
+
+    <!-- ── Hero + Search ───────────────────────────────────────────────── -->
+    <main id="main-content" class="flex-1 flex flex-col items-center justify-center px-4 md:px-8 py-8">
+
+      <!-- Search Container (animated) -->
+      <div id="search-container" class="search-container w-full max-w-3xl text-center">
+
+        <!-- Hero Headline -->
+        <div id="hero-headline" class="mb-12 transition-all duration-500">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+               style="background:rgba(26,94,255,0.1);border:1px solid rgba(26,94,255,0.2);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="#1a5eff" stroke-width="2"/>
+              <path d="M12 6v6l4 2" stroke="#1a5eff" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            <span class="text-xs font-semibold text-brand-400 tracking-widest uppercase">Powered by GPT-4o + Spring AI</span>
+          </div>
+
+          <h1 class="text-5xl md:text-6xl font-black tracking-tight mb-4" style="line-height:1.1;">
+            <span class="logo-text">Autonomous</span><br/>
+            <span class="text-white">Support Intelligence</span>
+          </h1>
+          <p class="text-lg text-white/40 font-light max-w-xl mx-auto leading-relaxed">
+            AI-driven ticket analysis using semantic vector search, structured output parsing,
+            and real-time MySQL persistence.
+          </p>
+        </div>
+
+        <!-- Customer Selector Row -->
+        <div class="flex items-center gap-3 mb-4 flex-wrap" id="customer-id-row">
+          <label class="text-sm font-medium text-white/50 whitespace-nowrap">Customer</label>
+
+          <!-- Dropdown populated from API -->
+          <select id="customer-select" class="customer-select" aria-label="Select customer"
+                  onchange="onCustomerSelected()">
+            <option value="">⏳ Loading customers…</option>
+          </select>
+
+          <!-- Avatar pill shown when a customer is selected -->
+          <div id="customer-pill" class="avatar-pill" style="display:none;" aria-live="polite">
+            <div class="avatar-circle" id="pill-avatar">?</div>
+            <span id="pill-name">—</span>
+            <span style="color:rgba(255,255,255,0.3);font-size:0.75rem;" id="pill-id">#—</span>
+          </div>
+
+          <!-- Register button -->
+          <button class="btn-register" onclick="openRegisterModal()" aria-label="Register new customer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+            New User
+          </button>
+        </div>
+
+        <!-- Main Search Bar -->
+        <div class="relative mb-4">
+          <!-- Search Icon -->
+          <div class="absolute left-6 top-1/2 -translate-y-1/2 pointer-events-none" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-white/30">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+
+          <input
+            id="query-input"
+            type="text"
+            class="search-bar pr-6"
+            placeholder="Describe your support issue… e.g. 'I need a refund for order #12345'"
+            aria-label="Support query"
+            maxlength="4000"
+          />
+        </div>
+
+        <!-- Action Row -->
+        <div class="flex items-center justify-between gap-3">
+
+          <!-- Mode Toggle -->
+          <div class="flex items-center gap-1 p-1 rounded-full" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);">
+            <button id="mode-sync" class="mode-btn active px-4 py-2 rounded-full text-sm font-medium transition-all"
+                    onclick="setMode('sync')" aria-pressed="true">
+              Sync
+            </button>
+            <button id="mode-stream" class="mode-btn px-4 py-2 rounded-full text-sm font-medium transition-all"
+                    onclick="setMode('stream')" aria-pressed="false">
+              Stream
+            </button>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            id="submit-btn"
+            class="btn-primary flex items-center gap-3"
+            onclick="submitQuery()"
+            aria-label="Analyze support ticket"
+          >
+            <div id="submit-spinner" class="spinner" aria-hidden="true"></div>
+            <svg id="submit-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M22 2L11 13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span id="submit-label">Analyze Ticket</span>
+          </button>
+
+          <!-- Character Counter -->
+          <div id="char-counter" class="text-xs text-white/30 font-mono min-w-[60px] text-right">0 / 4000</div>
+        </div>
+
+        <!-- Mode Labels -->
+        <p id="mode-description" class="text-xs text-white/30 mt-3 transition-all">
+          <strong class="text-white/50">Sync mode:</strong> Full analysis — blocking POST request, returns complete result
+        </p>
+      </div><!-- end search-container -->
+
+      <!-- ── Error Banner ─────────────────────────────────────────────── -->
+      <div id="error-banner" class="error-banner w-full max-w-3xl mt-4" role="alert" aria-live="assertive">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="flex-shrink-0">
+          <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/>
+          <path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <div>
+          <p class="text-sm font-semibold text-red-400" id="error-title">Connection Error</p>
+          <p class="text-xs text-red-400/70 mt-0.5" id="error-message">Unable to connect to the AI service. Please ensure the server is running.</p>
+        </div>
+        <button onclick="clearError()" class="ml-auto p-1 rounded-lg hover:bg-red-500/10 transition-colors"
+                aria-label="Dismiss error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- ── Results Grid ─────────────────────────────────────────────── -->
+      <div id="results-panel"
+           class="w-full max-w-7xl mt-8 grid grid-cols-1 lg:grid-cols-5 gap-6"
+           aria-live="polite"
+           aria-label="Analysis results">
+
+        <!-- ─ LEFT: Typewriter Panel (3/5 width) ─ -->
+        <div class="lg:col-span-3 glass-card p-7 flex flex-col gap-5" role="region" aria-label="AI Resolution">
+
+          <!-- Panel Header -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                   style="background:linear-gradient(135deg,rgba(26,94,255,0.2),rgba(100,40,255,0.2));border:1px solid rgba(26,94,255,0.2);">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="#1a5eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-sm font-semibold text-white">AI Resolution</h2>
+                <p class="text-xs text-white/30">GPT-4o structured output</p>
+              </div>
+            </div>
+            <div id="resolution-status-badge" class="badge badge-pending" aria-live="polite">
+              <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
+              Awaiting
+            </div>
+          </div>
+
+          <!-- Typewriter Text Area -->
+          <div class="flex-1 rounded-2xl p-5" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.05);">
+            <div id="typewriter-output" class="typewriter-text">
+              <span class="text-white/20 italic text-sm">
+                Submit a query above to see real-time AI analysis stream here…
+              </span>
+            </div>
+          </div>
+
+          <!-- Pipeline Progress (Stream Mode) -->
+          <div id="pipeline-progress" class="hidden">
+            <p class="text-xs font-semibold text-white/40 uppercase tracking-widest mb-3">Processing Pipeline</p>
+            <div id="stage-list" class="space-y-1">
+              <!-- Dynamically inserted by JS -->
+            </div>
+          </div>
+
+          <!-- Ticket Info Footer -->
+          <div id="ticket-footer" class="hidden pt-4 border-t border-white/5">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                  <polyline points="14,2 14,8 20,8" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                </svg>
+                <span class="text-xs text-white/30">Ticket ID:</span>
+                <span id="ticket-id-display" class="text-xs font-mono font-semibold text-brand-400">—</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                  <polyline points="12,6 12,12 16,14" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+                </svg>
+                <span id="created-at-display" class="text-xs text-white/30 font-mono">—</span>
+              </div>
+              <div>
+                <span class="text-xs text-white/30">Customer:</span>
+                <span id="customer-name-display" class="text-xs font-medium text-white/60 ml-1">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ─ RIGHT: Status Cards (2/5 width) ─ -->
+        <div class="lg:col-span-2 flex flex-col gap-4">
+
+          <!-- Card 1: Intent -->
+          <div class="metric-card" role="region" aria-label="Intent classification">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                     style="background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.2);">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" stroke="#8b5cf6" stroke-width="2"/>
+                    <path d="M12 8v4M12 16h.01" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-semibold text-white">Intent</span>
+              </div>
+              <div id="intent-badge" class="badge badge-pending" aria-live="polite">
+                <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
+                —
+              </div>
+            </div>
+            <div id="intent-description" class="text-xs text-white/30 leading-relaxed">
+              The AI will classify the primary intent of the customer's request.
+            </div>
+            <div class="mt-3 grid grid-cols-3 gap-2">
+              <div id="intent-pill-refund"  class="intent-pill rounded-lg p-2 text-center text-xs font-medium transition-all" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);">Refund</div>
+              <div id="intent-pill-tech"    class="intent-pill rounded-lg p-2 text-center text-xs font-medium transition-all" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);">Tech</div>
+              <div id="intent-pill-general" class="intent-pill rounded-lg p-2 text-center text-xs font-medium transition-all" style="background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.2);">General</div>
+            </div>
+          </div>
+
+          <!-- Card 2: Urgency -->
+          <div class="metric-card" role="region" aria-label="Urgency assessment">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                     style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.2);">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-semibold text-white">Urgency</span>
+              </div>
+              <div id="urgency-badge" class="badge badge-pending" aria-live="polite">
+                <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
+                —
+              </div>
+            </div>
+            <!-- SLA Bar -->
+            <div class="mb-3">
+              <div class="flex justify-between text-xs text-white/30 mb-1.5">
+                <span>Response SLA</span>
+                <span id="sla-label">—</span>
+              </div>
+              <div class="h-1.5 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.06);">
+                <div id="sla-bar" class="h-full rounded-full transition-all duration-700" style="width:0%;background:rgba(255,255,255,0.2);"></div>
+              </div>
+            </div>
+            <div id="urgency-description" class="text-xs text-white/30 leading-relaxed">
+              Urgency level determines SLA priority and escalation rules.
+            </div>
+          </div>
+
+          <!-- Card 3: DB Sync Status -->
+          <div class="metric-card" role="region" aria-label="Database synchronization status">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                     style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.2);">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <ellipse cx="12" cy="5" rx="9" ry="3" stroke="#10b981" stroke-width="2"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" stroke="#10b981" stroke-width="2"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" stroke="#10b981" stroke-width="2"/>
+                  </svg>
+                </div>
+                <span class="text-sm font-semibold text-white">DB Sync</span>
+              </div>
+              <div id="db-status-badge" class="badge badge-pending" aria-live="polite">
+                <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
+                Pending
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-white/30">MySQL 9.0</span>
+                <div id="db-dot" class="w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.15);"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-white/30">Vector Embed</span>
+                <div id="embed-dot" class="w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.15);"></div>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-white/30">RAG Chunks</span>
+                <span id="rag-count" class="text-xs font-mono text-white/30">—</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-white/30">Ticket Row</span>
+                <div id="ticket-dot" class="w-2 h-2 rounded-full" style="background:rgba(255,255,255,0.15);"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Confidence / Meta -->
+          <div class="metric-card" role="region" aria-label="Analysis metadata">
+            <div class="flex items-center gap-2 mb-3">
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+                   style="background:rgba(26,94,255,0.15);border:1px solid rgba(26,94,255,0.2);">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke="#1a5eff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+              <span class="text-sm font-semibold text-white">Model Info</span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between">
+                <span class="text-white/30">Model</span>
+                <span class="text-white/60 font-mono">gpt-4o</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-white/30">Embedding</span>
+                <span class="text-white/60 font-mono">text-embedding-3-small</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-white/30">Dimensions</span>
+                <span class="text-white/60 font-mono">1536</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-white/30">Framework</span>
+                <span class="text-white/60 font-mono">Spring AI 1.0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-white/30">Java</span>
+                <span class="text-white/60 font-mono">21 (VT)</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- end right column -->
+      </div><!-- end results-panel -->
+
+    </main><!-- end main -->
+
+    <!-- ── Footer ──────────────────────────────────────────────────────── -->
+    <footer class="px-8 py-5 flex items-center justify-between border-t border-white/5">
+      <p class="text-xs text-white/20">© 2026 Nexus AI · Spring Boot 3.4 · Java 21 VT · MySQL 9.0 VECTOR</p>
+      <p class="text-xs text-white/20 hidden md:block">Built with Spring AI · OpenAI GPT-4o · RAG Pipeline</p>
+    </footer>
+  </div><!-- end layout -->
+
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <!-- Register Customer Modal                                               -->
+  <!-- ══════════════════════════════════════════════════════════════════════ -->
+  <div id="register-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+       onclick="handleModalBackdropClick(event)">
+    <div class="modal-box">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+               style="background:linear-gradient(135deg,rgba(26,94,255,0.2),rgba(100,40,255,0.2));border:1px solid rgba(26,94,255,0.25);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="#1a5eff" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="12" cy="7" r="4" stroke="#1a5eff" stroke-width="2"/>
+            </svg>
+          </div>
+          <div>
+            <h2 id="modal-title" class="text-base font-bold text-white">Register Customer</h2>
+            <p class="text-xs text-white/30">Create a new support account</p>
+          </div>
+        </div>
+        <button onclick="closeRegisterModal()" class="p-2 rounded-xl hover:bg-white/5 transition-colors" aria-label="Close modal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6L6 18M6 6l12 12" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="reg-name" class="text-xs font-semibold text-white/50 uppercase tracking-wider">Full Name</label>
+          <input id="reg-name" type="text" class="modal-input" placeholder="Jane Smith"
+                 autocomplete="name" maxlength="255" />
+        </div>
+        <div>
+          <label for="reg-email" class="text-xs font-semibold text-white/50 uppercase tracking-wider">Email Address</label>
+          <input id="reg-email" type="email" class="modal-input" placeholder="jane@example.com"
+                 autocomplete="email" maxlength="255" />
+        </div>
+      </div>
+
+      <div id="reg-error" class="mt-4 hidden text-xs text-red-400 px-3 py-2 rounded-xl" style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);"></div>
+
+      <div class="flex gap-3 mt-6">
+        <button onclick="closeRegisterModal()"
+                class="flex-1 py-3 rounded-2xl text-sm font-semibold transition-all"
+                style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);"
+                onmouseover="this.style.background='rgba(255,255,255,0.09)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.05)'">
+          Cancel
+        </button>
+        <button id="reg-submit-btn" onclick="registerCustomer()"
+                class="flex-1 py-3 rounded-2xl text-sm font-semibold text-white flex items-center justify-center gap-2 transition-all"
+                style="background:linear-gradient(135deg,#1a5eff,#6428ff);">
+          <div id="reg-spinner" class="spinner" style="width:14px;height:14px;"></div>
+          <span id="reg-btn-label">Create Account</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- JavaScript                                                               -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+// ─── State ────────────────────────────────────────────────────────────────
+const state = {
+  mode:           'sync',      // 'sync' | 'stream'
+  isLoading:      false,
+  eventSource:    null,
+  typewriterFull: '',
+  selectedCustomerId: null,
+  stages: {
+    INIT:       { label: '🔐 Customer Validation',          status: 'pending' },
+    EMBEDDING:  { label: '🧠 Semantic Embedding (1536D)',    status: 'pending' },
+    RAG_SEARCH: { label: '🔍 Vector Cosine Search (MySQL)',  status: 'pending' },
+    AI_ANALYSIS:{ label: '⚡ GPT-4o Structured Analysis',   status: 'pending' },
+    DB_SYNC:    { label: '💾 MySQL Persistence',            status: 'pending' },
+  },
+};
+
+// ─── DOM references ────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+const DOM = {
+  queryInput:        $('query-input'),
+  customerSelect:    $('customer-select'),
+  customerPill:      $('customer-pill'),
+  pillAvatar:        $('pill-avatar'),
+  pillName:          $('pill-name'),
+  pillId:            $('pill-id'),
+  submitBtn:         $('submit-btn'),
+  submitSpinner:     $('submit-spinner'),
+  submitIcon:        $('submit-icon'),
+  submitLabel:       $('submit-label'),
+  charCounter:       $('char-counter'),
+  errorBanner:       $('error-banner'),
+  errorTitle:        $('error-title'),
+  errorMessage:      $('error-message'),
+  resultsPanel:      $('results-panel'),
+  typewriterOutput:  $('typewriter-output'),
+  pipelineProgress:  $('pipeline-progress'),
+  stageList:         $('stage-list'),
+  ticketFooter:      $('ticket-footer'),
+  ticketIdDisplay:   $('ticket-id-display'),
+  createdAtDisplay:  $('created-at-display'),
+  customerNameDisp:  $('customer-name-display'),
+  intentBadge:       $('intent-badge'),
+  urgencyBadge:      $('urgency-badge'),
+  dbStatusBadge:     $('db-status-badge'),
+  resolutionBadge:   $('resolution-status-badge'),
+  slaLabel:          $('sla-label'),
+  slaBar:            $('sla-bar'),
+  ragCount:          $('rag-count'),
+  dbDot:             $('db-dot'),
+  embedDot:          $('embed-dot'),
+  ticketDot:         $('ticket-dot'),
+  intentDescription: $('intent-description'),
+  urgencyDescription:$('urgency-description'),
+  modeDescription:   $('mode-description'),
+  registerModal:     $('register-modal'),
+  regName:           $('reg-name'),
+  regEmail:          $('reg-email'),
+  regError:          $('reg-error'),
+  regSpinner:        $('reg-spinner'),
+  regBtnLabel:       $('reg-btn-label'),
+  regSubmitBtn:      $('reg-submit-btn'),
+};
+
+// ─── Initialization ────────────────────────────────────────────────────────
+DOM.queryInput.addEventListener('input', () => {
+  const len = DOM.queryInput.value.length;
+  DOM.charCounter.textContent = `${len} / 4000`;
+  DOM.charCounter.style.color = len > 3800 ? '#ef4444' : len > 3000 ? '#f59e0b' : '';
+});
+
+DOM.queryInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    e.preventDefault();
+    submitQuery();
+  }
+});
+
+// Close modal on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && DOM.registerModal.classList.contains('open')) {
+    closeRegisterModal();
+  }
+});
+
+// ─── Customer Management ───────────────────────────────────────────────────
+
+/**
+ * Loads all registered customers from the API and populates the dropdown.
+ */
+async function loadCustomers() {
+  try {
+    const res = await fetch('/api/customers');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const customers = await res.json();
+
+    DOM.customerSelect.innerHTML = customers.length === 0
+      ? '<option value="">No customers yet — register one!</option>'
+      : '<option value="">Select a customer…</option>';
+
+    customers.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.name} (${c.email})`;
+      opt.dataset.name = c.name;
+      opt.dataset.email = c.email;
+      DOM.customerSelect.appendChild(opt);
+    });
+
+    // Auto-select first customer if only one
+    if (customers.length === 1) {
+      DOM.customerSelect.value = customers[0].id;
+      onCustomerSelected();
+    }
+  } catch (err) {
+    DOM.customerSelect.innerHTML = '<option value="">⚠️ Failed to load customers</option>';
+    console.error('Failed to load customers:', err);
+  }
+}
+
+/**
+ * Called when the customer dropdown selection changes.
+ * Updates the avatar pill and state.
+ */
+function onCustomerSelected() {
+  const select = DOM.customerSelect;
+  const selectedOpt = select.options[select.selectedIndex];
+  const id = parseInt(select.value);
+
+  if (!id || isNaN(id)) {
+    state.selectedCustomerId = null;
+    DOM.customerPill.style.display = 'none';
+    return;
+  }
+
+  state.selectedCustomerId = id;
+  const name = selectedOpt.dataset.name || selectedOpt.textContent.split(' (')[0];
+
+  // Update pill
+  DOM.pillAvatar.textContent = name.charAt(0).toUpperCase();
+  DOM.pillName.textContent   = name;
+  DOM.pillId.textContent     = `#${id}`;
+  DOM.customerPill.style.display = 'flex';
+}
+
+// ─── Register Modal ────────────────────────────────────────────────────────
+
+function openRegisterModal() {
+  DOM.regName.value  = '';
+  DOM.regEmail.value = '';
+  DOM.regError.classList.add('hidden');
+  DOM.regError.textContent = '';
+  DOM.registerModal.classList.add('open');
+  setTimeout(() => DOM.regName.focus(), 100);
+}
+
+function closeRegisterModal() {
+  DOM.registerModal.classList.remove('open');
+}
+
+function handleModalBackdropClick(e) {
+  if (e.target === DOM.registerModal) closeRegisterModal();
+}
+
+async function registerCustomer() {
+  const name  = DOM.regName.value.trim();
+  const email = DOM.regEmail.value.trim();
+
+  // Validation
+  if (!name || name.length < 2) {
+    showRegError('Please enter a valid full name (at least 2 characters).');
+    DOM.regName.focus();
+    return;
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showRegError('Please enter a valid email address.');
+    DOM.regEmail.focus();
+    return;
+  }
+
+  // UI: loading
+  DOM.regSubmitBtn.disabled = true;
+  DOM.regSpinner.classList.add('visible');
+  DOM.regBtnLabel.textContent = 'Registering…';
+  DOM.regError.classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/customers', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, email }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data.detail || data.title || `Error ${res.status}`;
+      showRegError(msg);
+      return;
+    }
+
+    // Success — reload customer list and select the new customer
+    closeRegisterModal();
+    await loadCustomers();
+
+    // Select the newly created customer
+    DOM.customerSelect.value = data.id;
+    onCustomerSelected();
+
+  } catch (err) {
+    showRegError('Network error — please check the server connection.');
+  } finally {
+    DOM.regSubmitBtn.disabled = false;
+    DOM.regSpinner.classList.remove('visible');
+    DOM.regBtnLabel.textContent = 'Create Account';
+  }
+}
+
+function showRegError(msg) {
+  DOM.regError.textContent = msg;
+  DOM.regError.classList.remove('hidden');
+}
+
+// Allow Enter key in registration modal inputs
+[$('reg-name'), $('reg-email')].forEach(el => {
+  if (el) el.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); registerCustomer(); }
+  });
+});
+
+// Load customers on page boot
+loadCustomers();
+
+// Style mode toggle buttons
+function setMode(mode) {
+  state.mode = mode;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    const isActive = btn.id === `mode-${mode}`;
+    btn.style.background = isActive ? 'rgba(26,94,255,0.15)' : 'transparent';
+    btn.style.color       = isActive ? '#93c5fd' : 'rgba(255,255,255,0.4)';
+    btn.style.border      = isActive ? '1px solid rgba(26,94,255,0.25)' : '1px solid transparent';
+    btn.setAttribute('aria-pressed', String(isActive));
+  });
+
+  DOM.modeDescription.innerHTML = mode === 'sync'
+    ? '<strong class="text-white/50">Sync mode:</strong> Full analysis — blocking POST request, returns complete result'
+    : '<strong class="text-white/50">Stream mode:</strong> Real-time SSE events — watch each pipeline stage process live';
+}
+setMode('sync'); // Initialize with sync
+
+// ─── Main Submit ───────────────────────────────────────────────────────────
+async function submitQuery() {
+  const query      = DOM.queryInput.value.trim();
+  const customerId = state.selectedCustomerId || parseInt(DOM.customerSelect.value);
+
+  if (!query || query.length < 10) {
+    showError('Query Too Short', 'Please enter at least 10 characters describing your issue.');
+    return;
+  }
+  if (!customerId || isNaN(customerId) || customerId < 1) {
+    showError('No Customer Selected', 'Please select a customer from the dropdown, or register a new one.');
+    return;
+  }
+  if (state.isLoading) return;
+
+  clearError();
+  setLoadingState(true);
+  resetResults();
+  showResultsPanel();
+
+  if (state.mode === 'stream') {
+    startSSEStream(customerId, query);
+  } else {
+    await doSyncAnalysis(customerId, query);
+  }
+}
+
+// ─── Sync Mode (POST) ──────────────────────────────────────────────────────
+async function doSyncAnalysis(customerId, query) {
+  try {
+    setResolutionBadge('processing', 'Analyzing…');
+    setTypewriterText('', true);
+
+    const response = await fetch('/api/tickets/analyze', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body:    JSON.stringify({ customerId, query }),
+    });
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({ title: 'Request Failed', detail: response.statusText }));
+      throw new Error(errBody.detail || errBody.title || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    applySyncResult(data);
+
+  } catch (err) {
+    showError('Analysis Failed', err.message || 'Network error — is the Spring Boot server running on port 8080?');
+    setResolutionBadge('error', 'Failed');
+  } finally {
+    setLoadingState(false);
+  }
+}
+
+function applySyncResult(data) {
+  // Simulate pipeline stages completing instantly
+  Object.keys(state.stages).forEach(key => {
+    state.stages[key].status = 'complete';
+  });
+
+  // Typewriter animate the resolution
+  typewriterAnimate(data.suggestedResolution || 'Analysis complete.');
+
+  // Update badges
+  applyIntentBadge(data.intent);
+  applyUrgencyBadge(data.urgency);
+  setResolutionBadge('resolved', 'Resolved');
+  setDbSyncComplete(data.ticketId);
+
+  // Ticket footer
+  DOM.ticketIdDisplay.textContent    = `#${data.ticketId}`;
+  DOM.createdAtDisplay.textContent   = formatDate(data.createdAt);
+  DOM.customerNameDisp.textContent   = data.customerName || '—';
+  DOM.ticketFooter.classList.remove('hidden');
+
+  // DB dots
+  setDotComplete(DOM.dbDot);
+  setDotComplete(DOM.embedDot);
+  setDotComplete(DOM.ticketDot);
+  DOM.ragCount.textContent = '3';
+  DOM.ragCount.style.color = '#6ee7b7';
+}
+
+// ─── Stream Mode (SSE) ────────────────────────────────────────────────────
+function startSSEStream(customerId, query) {
+  if (state.eventSource) {
+    state.eventSource.close();
+    state.eventSource = null;
+  }
+
+  // Show pipeline panel
+  DOM.pipelineProgress.classList.remove('hidden');
+  renderStageList();
+
+  const url = `/api/tickets/stream?customerId=${encodeURIComponent(customerId)}&query=${encodeURIComponent(query)}`;
+  const es  = new EventSource(url);
+  state.eventSource = es;
+
+  es.addEventListener('stage', e => {
+    try {
+      const payload = JSON.parse(e.data);
+      handleStageEvent(payload);
+    } catch (err) { console.warn('stage parse error', err); }
+  });
+
+  es.addEventListener('typewriter', e => {
+    try {
+      const text = JSON.parse(e.data);
+      DOM.typewriterOutput.innerHTML = escapeHtml(text) + '<span class="typewriter-cursor"></span>';
+    } catch (err) { console.warn('typewriter parse error', err); }
+  });
+
+  es.addEventListener('analysis', e => {
+    try {
+      const data = JSON.parse(e.data);
+      applyIntentBadge(data.intent);
+      applyUrgencyBadge(data.urgency);
+      setResolutionBadge('resolved', 'Resolved');
+      setDbSyncComplete(data.ticketId);
+    } catch (err) { console.warn('analysis parse error', err); }
+  });
+
+  es.addEventListener('complete', e => {
+    try {
+      const data = JSON.parse(e.data);
+      DOM.ticketIdDisplay.textContent = `#${data.ticketId}`;
+      DOM.ticketFooter.classList.remove('hidden');
+      setDotComplete(DOM.dbDot);
+      setDotComplete(DOM.embedDot);
+      setDotComplete(DOM.ticketDot);
+    } catch (err) { console.warn('complete parse error', err); }
+
+    // Remove cursor
+    const cursor = DOM.typewriterOutput.querySelector('.typewriter-cursor');
+    if (cursor) cursor.remove();
+
+    es.close();
+    state.eventSource = null;
+    setLoadingState(false);
+  });
+
+  es.addEventListener('error', e => {
+    // Named error events from our server
+    if (e.data) {
+      try {
+        const errData = JSON.parse(e.data);
+        showError(errData.code || 'Pipeline Error', errData.message || 'An error occurred during processing.');
+        setResolutionBadge('error', 'Failed');
+      } catch (parseErr) {
+        showError('Stream Error', 'The SSE stream encountered an error.');
+      }
+    } else {
+      // Network/connection error from EventSource
+      showError('Connection Lost', 'Lost connection to server. Is Spring Boot running on port 8080?');
+      setResolutionBadge('error', 'Disconnected');
+    }
+    es.close();
+    state.eventSource = null;
+    setLoadingState(false);
+  });
+}
+
+function handleStageEvent(payload) {
+  const { stage, message, status } = payload;
+  if (!state.stages[stage]) return;
+
+  state.stages[stage].status = status.toLowerCase();
+  if (status === 'IN_PROGRESS') {
+    state.stages[stage].status = 'active';
+    setTypewriterText(message, true);
+  } else if (status === 'COMPLETE') {
+    state.stages[stage].status = 'complete';
+  } else if (status === 'FALLBACK') {
+    state.stages[stage].status = 'fallback';
+  }
+
+  // Update DB dots based on stages
+  if (stage === 'EMBEDDING' && status === 'COMPLETE') setDotComplete(DOM.embedDot);
+  if (stage === 'RAG_SEARCH' && status === 'COMPLETE') {
+    setDotComplete(DOM.dbDot);
+    const match = message.match(/\d+/);
+    if (match) { DOM.ragCount.textContent = match[0]; DOM.ragCount.style.color = '#6ee7b7'; }
+  }
+  if (stage === 'DB_SYNC' && status === 'COMPLETE') setDotComplete(DOM.ticketDot);
+
+  renderStageList();
+}
+
+function renderStageList() {
+  DOM.stageList.innerHTML = Object.entries(state.stages).map(([key, s]) => {
+    const dotClass  = `stage-dot ${s.status}`;
+    const itemClass = `stage-item ${s.status === 'active' ? 'active' : s.status === 'complete' || s.status === 'fallback' ? 'complete' : ''} ${s.status === 'fallback' ? 'fallback-state' : ''}`;
+    const checkmark = s.status === 'complete'
+      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+      : s.status === 'fallback'
+      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 9v4M12 17h.01" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"/></svg>'
+      : '';
+
+    return `<div class="${itemClass}">
+      <div class="${dotClass}"></div>
+      <span class="text-xs flex-1" style="color:rgba(255,255,255,${s.status === 'pending' ? '0.3' : '0.8'})">${s.label}</span>
+      ${checkmark}
+    </div>`;
+  }).join('');
+}
+
+// ─── Badge Helpers ─────────────────────────────────────────────────────────
+function applyIntentBadge(intent) {
+  if (!intent) return;
+  const map = {
+    REFUND:       { cls: 'badge-refund',   label: '💳 Refund',       desc: 'Customer is requesting a refund, return, or compensation for a purchase.' },
+    TECH_SUPPORT: { cls: 'badge-tech',     label: '🔧 Tech Support', desc: 'Customer is experiencing a technical issue, bug, or service problem.' },
+    GENERAL:      { cls: 'badge-general',  label: '💬 General',      desc: 'General inquiry including account management, shipping, or other topics.' },
+  };
+  const cfg = map[intent] || { cls: 'badge-general', label: intent, desc: '' };
+  DOM.intentBadge.className = `badge ${cfg.cls}`;
+  DOM.intentBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-current opacity-80"></span>${cfg.label}`;
+  DOM.intentDescription.textContent = cfg.desc;
+
+  // Light up the correct pill
+  ['refund','tech','general'].forEach(type => {
+    const el = $(`intent-pill-${type}`);
+    const isActive = (intent === 'REFUND' && type === 'refund') ||
+                     (intent === 'TECH_SUPPORT' && type === 'tech') ||
+                     (intent === 'GENERAL' && type === 'general');
+    el.style.background = isActive ? 'rgba(26,94,255,0.12)' : 'rgba(255,255,255,0.04)';
+    el.style.color      = isActive ? '#93c5fd' : 'rgba(255,255,255,0.2)';
+    el.style.border     = isActive ? '1px solid rgba(26,94,255,0.25)' : '1px solid transparent';
+    el.style.fontWeight = isActive ? '700' : '500';
+  });
+}
+
+function applyUrgencyBadge(urgency) {
+  if (!urgency) return;
+  const map = {
+    HIGH:   { cls: 'badge-high',   label: '🔴 High',   sla: '4 hours',        pct: '90', color: '#ef4444', desc: 'Critical issue — SLA 4 hours. Immediate escalation required.' },
+    MEDIUM: { cls: 'badge-medium', label: '🟡 Medium', sla: '1 business day', pct: '55', color: '#f59e0b', desc: 'Standard priority — SLA 1 business day. Agent will follow up.' },
+    LOW:    { cls: 'badge-low',    label: '🟢 Low',    sla: '3 business days', pct: '20', color: '#10b981', desc: 'Low priority — SLA 3 business days. Routine inquiry.' },
+  };
+  const cfg = map[urgency] || { cls: 'badge-low', label: urgency, sla: '—', pct: '30', color: '#6b7280', desc: '' };
+  DOM.urgencyBadge.className = `badge ${cfg.cls}`;
+  DOM.urgencyBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-current opacity-80"></span>${cfg.label}`;
+  DOM.slaLabel.textContent = cfg.sla;
+  DOM.slaBar.style.width      = cfg.pct + '%';
+  DOM.slaBar.style.background = cfg.color;
+  DOM.urgencyDescription.textContent = cfg.desc;
+}
+
+function setResolutionBadge(status, label) {
+  const map = {
+    processing: 'badge-processing',
+    resolved:   'badge-resolved',
+    fallback:   'badge-fallback',
+    error:      'badge-error',
+  };
+  DOM.resolutionBadge.className = `badge ${map[status] || 'badge-pending'}`;
+  DOM.resolutionBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-current opacity-80"></span>${label}`;
+}
+
+function setDbSyncComplete(ticketId) {
+  DOM.dbStatusBadge.className = 'badge badge-resolved';
+  DOM.dbStatusBadge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-current opacity-80"></span>Synced';
+}
+
+function setDotComplete(dotEl) {
+  dotEl.style.background = '#10b981';
+  dotEl.style.boxShadow  = '0 0 6px rgba(16,185,129,0.5)';
+}
+
+// ─── Typewriter Animation ─────────────────────────────────────────────────
+let typewriterTimer = null;
+
+function typewriterAnimate(text) {
+  clearTimeout(typewriterTimer);
+  if (!text) return;
+  state.typewriterFull = text;
+  let i = 0;
+
+  function tick() {
+    i += Math.floor(Math.random() * 3) + 1;
+    if (i >= text.length) {
+      DOM.typewriterOutput.innerHTML = escapeHtml(text);
+      return;
+    }
+    DOM.typewriterOutput.innerHTML = escapeHtml(text.slice(0, i)) + '<span class="typewriter-cursor"></span>';
+    typewriterTimer = setTimeout(tick, 18 + Math.random() * 10);
+  }
+  tick();
+}
+
+function setTypewriterText(text, withCursor = false) {
+  DOM.typewriterOutput.innerHTML = escapeHtml(text) + (withCursor ? '<span class="typewriter-cursor"></span>' : '');
+}
+
+// ─── UI State Management ───────────────────────────────────────────────────
+function showResultsPanel() {
+  const panel = DOM.resultsPanel;
+  panel.style.display = 'grid';
+  // Trigger transition after display
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      panel.style.opacity    = '1';
+      panel.style.transform  = 'translateY(0)';
+      panel.style.transition = 'all 0.55s cubic-bezier(0.34,1.56,0.64,1)';
+    });
+  });
+}
+
+function resetResults() {
+  clearTimeout(typewriterTimer);
+
+  DOM.typewriterOutput.innerHTML = '<span class="typewriter-cursor"></span>';
+  DOM.intentBadge.className      = 'badge badge-pending';
+  DOM.intentBadge.innerHTML      = '<span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>—';
+  DOM.urgencyBadge.className     = 'badge badge-pending';
+  DOM.urgencyBadge.innerHTML     = '<span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>—';
+  DOM.dbStatusBadge.className    = 'badge badge-pending';
+  DOM.dbStatusBadge.innerHTML    = '<span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>Pending';
+  DOM.resolutionBadge.className  = 'badge badge-pending';
+  DOM.resolutionBadge.innerHTML  = '<span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>Awaiting';
+  DOM.intentDescription.textContent  = 'The AI will classify the primary intent of the customer\'s request.';
+  DOM.urgencyDescription.textContent = 'Urgency level determines SLA priority and escalation rules.';
+  DOM.slaLabel.textContent     = '—';
+  DOM.slaBar.style.width       = '0%';
+  DOM.ragCount.textContent     = '—';
+  DOM.ragCount.style.color     = '';
+  DOM.ticketFooter.classList.add('hidden');
+  DOM.ticketIdDisplay.textContent  = '—';
+  DOM.createdAtDisplay.textContent = '—';
+  DOM.customerNameDisp.textContent = '—';
+  DOM.pipelineProgress.classList.add('hidden');
+
+  // Reset dots
+  [DOM.dbDot, DOM.embedDot, DOM.ticketDot].forEach(d => {
+    d.style.background = 'rgba(255,255,255,0.15)';
+    d.style.boxShadow  = 'none';
+  });
+
+  // Reset intent pills
+  ['refund','tech','general'].forEach(type => {
+    const el = $(`intent-pill-${type}`);
+    el.style.background = 'rgba(255,255,255,0.04)';
+    el.style.color      = 'rgba(255,255,255,0.2)';
+    el.style.border     = '1px solid transparent';
+    el.style.fontWeight = '500';
+  });
+
+  // Reset stages
+  Object.keys(state.stages).forEach(k => { state.stages[k].status = 'pending'; });
+  DOM.stageList.innerHTML = '';
+}
+
+function setLoadingState(loading) {
+  state.isLoading = loading;
+  DOM.submitBtn.disabled    = loading;
+  DOM.submitSpinner.classList.toggle('visible', loading);
+  DOM.submitIcon.style.display   = loading ? 'none' : 'block';
+  DOM.submitLabel.textContent    = loading ? 'Analyzing…' : 'Analyze Ticket';
+}
+
+// ─── Error Handling ────────────────────────────────────────────────────────
+function showError(title, message) {
+  DOM.errorTitle.textContent   = title;
+  DOM.errorMessage.textContent = message;
+  DOM.errorBanner.classList.add('visible');
+}
+
+function clearError() {
+  DOM.errorBanner.classList.remove('visible');
+}
+
+// ─── Utilities ────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g,  '&amp;')
+    .replace(/</g,  '&lt;')
+    .replace(/>/g,  '&gt;')
+    .replace(/"/g,  '&quot;')
+    .replace(/'/g,  '&#039;')
+    .replace(/\n/g, '<br>');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    }).format(new Date(dateStr));
+  } catch { return dateStr; }
+}
+
+// ─── Keyboard shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    clearError();
+    if (state.eventSource) {
+      state.eventSource.close();
+      state.eventSource = null;
+      setLoadingState(false);
+    }
+    // Note: modal Escape is handled separately above
+  }
+});
+
+// ─── Demo Prefills ────────────────────────────────────────────────────────
+/**
+ * Prefill the query input (and optionally select a customer by ID).
+ * @param {string} text - The query text to fill in
+ * @param {number|string} [id]  - Optional customer ID to select
+ */
+window.prefill = function(text, id) {
+  DOM.queryInput.value = text;
+  DOM.queryInput.dispatchEvent(new Event('input'));
+
+  if (id) {
+    const numId = String(id);
+    // Try to select the given customer ID in the dropdown
+    const opts = Array.from(DOM.customerSelect.options);
+    const match = opts.find(o => String(o.value) === numId);
+    if (match) {
+      DOM.customerSelect.value = numId;
+      onCustomerSelected();
+    }
+  }
+
+  DOM.queryInput.focus();
+};
+
+// Quick-access demo hints (subtle click area on placeholder)
+DOM.queryInput.addEventListener('focus', () => {
+  if (!DOM.queryInput.value) {
+    DOM.queryInput.placeholder = 'Try: "I need a refund for order #12345" · "My API integration keeps returning 500 errors" · "How do I update my billing address?"';
+  }
+});
+DOM.queryInput.addEventListener('blur', () => {
+  DOM.queryInput.placeholder = 'Describe your support issue… e.g. "I need a refund for order #12345"';
+});
+</script>
+
+</body>
+</html>

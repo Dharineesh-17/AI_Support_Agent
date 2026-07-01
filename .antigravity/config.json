@@ -1,0 +1,1 @@
+﻿{ "projectType": "spring-boot-java", "javaVersion": "21", "buildTool": "maven", "agentExecutionStrategy": "PLANNING_FIRST", "artifactReviewPolicy": "ASKS_FOR_REVIEW", "allowedCapabilities": ["TERMINAL_WRITE", "FILE_SYSTEM_MUTATE", "NETWORK_FETCH"], "environment": { "dockerComposeAutoProvision": true } }

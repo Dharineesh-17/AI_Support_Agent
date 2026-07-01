@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: ai-customer-agent
+  threads:
+    virtual:
+      enabled: true
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY: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}
+      chat:
+        options:
+          model: gpt-4o
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+  # ──────────────────────────────────────────────────────────────
+  # In-Memory H2 Database Configuration (No Setup Required!)
+  # ──────────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:h2:mem:customer_agent_db;DB_CLOSE_DELAY=-1;MODE=MySQL
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true # Allows you to see tables via http://localhost:8080/h2-console
+      path: /h2-console
+
+  jpa:
+    defer-datasource-initialization: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
